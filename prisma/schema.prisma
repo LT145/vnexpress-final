@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  password       String?
+  role           UserRole        @default(USER)
+  createdAt      DateTime        @default(now())
+  avatar         String?
+  advertisements Advertisement[]
+  comments       Comment[]
+  followers      Follow[]        @relation("Followers")
+  following      Follow[]        @relation("Following")
+  likes          Like[]
+  posts          Post[]
+  profile        Profile?
+  reports        Report[]
+}
+
+model Profile {
+  id        String    @id @default(cuid())
+  gender    Gender?
+  phone     String?
+  address   String?
+  birthDate DateTime?
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        Int        @id @default(autoincrement())
+  title     String
+  content   String
+  published Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  authorId  String
+  imageUrls String[]
+  status    PostStatus @default(DRAFT)
+  comments  Comment[]
+  likes     Like[]
+  author    User       @relation(fields: [authorId], references: [id])
+  reports   Report[]
+  adPlaces  AdPlace[]  @relation("AdPlaceToPost")
+  tags      Tag[]      @relation("PostToTag")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    Int
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  likes     Like[]
+  reports   Report[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  postId    Int?
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Followers", fields: [followerId], references: [id])
+  following   User     @relation("Following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  posts Post[] @relation("PostToTag")
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reason     String
+  status     ReportStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  reporterId String
+  postId     Int?
+  commentId  String?
+  comment    Comment?     @relation(fields: [commentId], references: [id])
+  post       Post?        @relation(fields: [postId], references: [id])
+  reporter   User         @relation(fields: [reporterId], references: [id])
+}
+
+model Advertisement {
+  id           String      @id @default(cuid())
+  title        String
+  description  String
+  imageUrl     String
+  targetUrl    String
+  startDate    DateTime
+  endDate      DateTime
+  status       AdStatus    @default(PENDING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  advertiserId String
+  payments     AdPayment[]
+  stats        AdStat[]
+  advertiser   User        @relation(fields: [advertiserId], references: [id])
+  adPlaces     AdPlace[]   @relation("AdPlaceToAdvertisement")
+}
+
+model AdPlace {
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  position       String
+  maxAds         Int
+  advertisements Advertisement[] @relation("AdPlaceToAdvertisement")
+  posts          Post[]          @relation("AdPlaceToPost")
+}
+
+model AdPayment {
+  id              String        @id @default(cuid())
+  amount          Float
+  currency        String
+  status          PaymentStatus @default(PENDING)
+  method          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  advertisementId String
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
+}
+
+model AdStat {
+  id              String        @id @default(cuid())
+  impressions     Int           @default(0)
+  clicks          Int           @default(0)
+  date            DateTime      @default(now())
+  advertisementId String
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
+
+  @@unique([advertisementId, date])
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  DELETED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  EDITOR
+  MODERATOR
+  ADVERTISER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PRIVATE
+}
+
+enum ReportStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum AdStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
