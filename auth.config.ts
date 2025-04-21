@@ -37,79 +37,103 @@ export default {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error('Missing credentials');
+          }
+
+          const email = credentials.email as string; // Explicit type assertion
+          const user = await prisma.user.findUnique({
+            where: { email: email }, // Use the typed email variable
+          });
+
+          if (!user) {
+            throw new Error('User not found');
+          }
+
+          if (!user.password) {
+            throw new Error('User has no password set');
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password as string,
+            user.password as string
+          );
+
+          if (!isPasswordValid) {
+            throw new Error('Invalid password');
+          }
+
+          return {
+            id: user.id,
+            name: user.name || '',
+            email: user.email,
+            role: user.role,
+            createdAt: user.createdAt.toISOString()
+          };
+        } catch (error) {
+          console.error('Authorization error:', error);
           return null;
         }
-
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
-
-        if (!user) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password as string
-        );
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          name: user.name || '', // Ensure name is not null
-          email: user.email,
-          role: user.role,
-          createdAt: user.createdAt.toISOString() // Add createdAt
-        };
       },
     }),
   ],
   pages: {
     signIn: "/sign-in",
-    error: "/sign-in", // chuyển lỗi về cùng trang
+    error: "/sign-in?error=AuthenticationFailed", // Updated error page
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (!profile) {
-        return false;
-      }
-      if (account?.provider !== 'google') {
-        return true;
-      }
-
-      if (!profile.email || typeof profile.email !== 'string') {
-        return false;
-      }
-
-      const existingUser = await prisma.user.findUnique({
-        where: { email: profile.email },
-      });
-
-      if (!existingUser) {
-        return true;
-      }
-
-      if (!existingUser.googleId) {
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            googleId: profile.sub
+      try {
+        // For email/password authentication
+        if (account?.provider === 'credentials') {
+          if (!user) {
+            return false;
           }
-        });
-        return "/sign-in?error=GoogleAccountAlreadyLinked";
+          return true;
+        }
+    
+        // For Google authentication
+        if (account?.provider === 'google') {
+          if (!profile) {
+            return false;
+          }
+    
+          if (!profile.email || typeof profile.email !== 'string') {
+            return false;
+          }
+    
+          const existingUser = await prisma.user.findUnique({
+            where: { email: profile.email },
+          });
+    
+          if (!existingUser) {
+            return true;
+          }
+    
+          if (!existingUser.googleId) {
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                googleId: profile.sub
+              }
+            });
+            return true;
+          }
+    
+          if (existingUser.googleId !== profile.sub) {
+            return false;
+          }
+    
+          return true;
+        }
+    
+        // Default case for other providers
+        return false;
+      } catch (error) {
+        console.error('SignIn error:', error);
+        return false;
       }
-
-      if (existingUser.googleId !== profile.sub) {
-        return "/sign-in?error=GoogleAccountAlreadyLinked";
-      }
-
-      return true;
     },
     async jwt({ token, user, profile }) {
       // Type assertion for user as our custom User type
