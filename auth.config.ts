@@ -2,7 +2,7 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 
 import type { NextAuthConfig } from "next-auth";
-import  prisma  from "@/lib/prisma";
+import  { prisma }  from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { config } from "./config";
 import { UserRole } from "@prisma/client";
@@ -12,6 +12,7 @@ type User = {
   email: string;
   role: UserRole;
   createdAt: string;
+  emailVerified?: string | null;
 }
 
 export default {
@@ -19,6 +20,15 @@ export default {
     Google({
       clientId: config.env.google.clientId,
       clientSecret: config.env.google.clientSecret,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          role: 'USER',
+          createdAt: new Date().toISOString()
+        }
+      }
     }),
     Credentials({
       name: "Credentials",
@@ -61,16 +71,54 @@ export default {
     }),
   ],
   pages: {
-    signIn: "/auth/sign-in",
+    signIn: "/sign-in",
+    error: "/sign-in", // chuyển lỗi về cùng trang
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      if (!profile) {
+        return false;
+      }
+      if (account?.provider !== 'google') {
+        return true;
+      }
+
+      if (!profile.email || typeof profile.email !== 'string') {
+        return false;
+      }
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email: profile.email },
+      });
+
+      if (!existingUser) {
+        return true;
+      }
+
+      if (!existingUser.googleId) {
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            googleId: profile.sub
+          }
+        });
+        return "/sign-in?error=GoogleAccountAlreadyLinked";
+      }
+
+      if (existingUser.googleId !== profile.sub) {
+        return "/sign-in?error=GoogleAccountAlreadyLinked";
+      }
+
+      return true;
+    },
+    async jwt({ token, user, profile }) {
       // Type assertion for user as our custom User type
       const dbUser = user as User | undefined;
       if (dbUser) {
         token.id = dbUser.id;
         token.name = dbUser.name;
         token.role = dbUser.role;
+        // Remove the avatar assignment from profile.picture
         console.log('JWT token after update:', token);
       }
 
@@ -81,10 +129,10 @@ export default {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.role = token.role as string;
-        console.log('Session after update:', session);
       }
 
       return session;
     },
   },
 } satisfies NextAuthConfig;
+  

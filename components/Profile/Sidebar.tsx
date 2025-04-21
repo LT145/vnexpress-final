@@ -1,8 +1,7 @@
-import { SidebarProps, UserData } from '@/types';
+import { SidebarProps } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export const Sidebar = ({ userData }: SidebarProps) => (
   <aside className="w-full md:w-1/4">
@@ -10,7 +9,10 @@ export const Sidebar = ({ userData }: SidebarProps) => (
       <CardContent className="p-6">
         <div className="flex items-center space-x-4 mb-6">
           <Avatar className="w-16 h-16">
-            <AvatarImage src={userData?.avatar} alt={userData?.name || "User"} />
+            <AvatarImage 
+              src={userData?.avatar ?? ""} // Provide a fallback empty string if avatar is null
+              alt={userData?.name || "User"} 
+            />
             <AvatarFallback>
               {userData?.name?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>

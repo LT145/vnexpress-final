@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -12,7 +11,7 @@ const sidebarItems = [
   { title: "Quản lý người dùng", href: "/dashboard/users" },
   { title: "Quản lý bài viết", href: "/dashboard/posts" },
   { title: "Quản lý bình luận", href: "/dashboard/comments" },
-  { title: "Quản lý quảng cáo", href: "/dashboard/ads" },
+  { title: "Quản lý quảng cáo", href: "/dashboard/advertisements" },
   { title: "Quản lý báo cáo", href: "/dashboard/reports" },
   { title: "Thống kê", href: "/dashboard/statistics" },
 ];

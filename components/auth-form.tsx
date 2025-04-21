@@ -9,6 +9,8 @@ import { FieldValues } from "react-hook-form";
 import { AuthActionResult } from "../types/types";
 import { getSession } from "next-auth/react";
 import RegisterForm from "./RegisterForm";
+import Image from "next/image"; // Ensure Image is imported
+import { X } from "lucide-react"; // Add this import
 
 interface LoginFormValues {
   email: string;
@@ -26,21 +28,19 @@ interface Props<T extends FieldValues> {
   defaultValues: T;
   onSubmit: (data: T) => Promise<AuthActionResult>;
   onClose: () => void;
+  error?: string;
 }
 
 const AuthForm = <T extends FieldValues>({
-  type,
-  schema,
-  defaultValues,
-  onSubmit,
   onClose = () => {},
+  error,
 }: Props<T>) => {
-  const isSignIn = type === "SIGN_IN";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>("");
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false); // Keep this line
   
+  // Remove the error state variable
+  // const [error, setError] = useState<string | undefined>("");
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -50,7 +50,8 @@ const AuthForm = <T extends FieldValues>({
   });
 
   const handleLogin: SubmitHandler<LoginFormValues> = async (values) => {
-    setError("");
+    // Remove the call to setError
+    // setError("");
     startTransition(async () => {
       try {
         const result = await signIn("credentials", {
@@ -60,7 +61,8 @@ const AuthForm = <T extends FieldValues>({
         });
 
         if (result?.error) {
-          setError(result.error);
+          // Handle error appropriately, e.g., display a message
+          console.error(result.error);
         } else {
           const session = await getSession();
           if (session?.user.role === 'ADMIN') {
@@ -70,26 +72,67 @@ const AuthForm = <T extends FieldValues>({
           }
           onClose();
         }
-      } catch (error) {
-        setError("Đăng nhập thất bại");
+      } catch {
+        // Handle error appropriately, e.g., display a message
+        console.error("Đăng nhập thất bại");
       }
     });
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signIn('google', { redirect: false });
+      if (result?.error) {
+        console.error(result.error);
+      } else {
+        const session = await getSession();
+        if (session?.user.role === 'ADMIN') {
+          router.push('/dashboard');
+        } else {
+          router.push('/');
+        }
+        onClose();
+      }
+    } catch {
+      console.error('Đăng nhập Google thất bại');
+    }
+  };
+
   return (
-    <div className="bg-white w-full max-w-md mx-auto p-8 rounded-lg relative">
+    <div className="bg-white w-full max-w-md mx-auto p-8 rounded-lg relative border border-gray-200">
+      {/* Add close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+        aria-label="Close"
+      >
+        <X className="h-5 w-5 text-gray-500" />
+      </button>
+
+
+
       <div className="bg-white flex justify-center items-center mb-6 p-4 rounded-t-lg w-full">
-        <img 
+        <Image 
           src="https://s1.vnecdn.net/vnexpress/restruct/i/v824/v2_2019/pc/graphics/logo.svg" 
           alt="VnExpress logo" 
+          width={140} // Specify width
+          height={140} // Specify height
           className="h-10" 
+          unoptimized
         />
       </div>
 
       <h2 className="text-center text-gray-500 text-2xl font-semibold mb-6">
         Đăng nhập
       </h2>
-      
+            {/* Error message */}
+            {error === 'OAuthAccountNotLinked' && (
+        <div className="mb-4 p-4 bg-red-50 rounded-lg">
+          <p className="text-center text-sm font-medium text-red-600">
+            Tài khoản Google này đã được liên kết với một tài khoản khác. Vui lòng đăng nhập bằng email và mật khẩu.
+          </p>
+        </div>
+      )}
       <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
         <div className="mb-4">
           <label className="block mb-2 text-gray-500">Email</label>
@@ -137,24 +180,45 @@ const AuthForm = <T extends FieldValues>({
 
       <div className="flex justify-between mb-6">
         <button 
-          onClick={() => signIn('google')}
+          onClick={handleGoogleSignIn}
           className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
         >
-          <img src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-google.svg" alt="Google logo" className="h-5 mr-2" />
+          <Image 
+            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-google.svg" 
+            alt="Google logo" 
+            width={40} 
+            height={40} 
+            className="h-5 mr-2" 
+            unoptimized
+          />
           <span>Google</span>
         </button>
         <button 
           onClick={() => signIn('facebook')}
           className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2 mx-2"
         >
-          <img src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-facebook.svg" alt="Facebook logo" className="h-5 mr-2" />
+          <Image 
+            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-facebook.svg" 
+            alt="Facebook logo" 
+            width={20} // Specify width
+            height={20} // Specify height
+            className="h-5 mr-2" 
+            unoptimized
+          />
           <span>Facebook</span>
         </button>
         <button 
           onClick={() => signIn('apple')}
           className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
         >
-          <img src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-apple.svg" alt="Apple logo" className="h-5 mr-2" />
+          <Image 
+            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-apple.svg" 
+            alt="Apple logo" 
+            width={20} // Specify width
+            height={20} // Specify height
+            className="h-5 mr-2" 
+            unoptimized
+          />
           <span>Apple</span>
         </button>
       </div>

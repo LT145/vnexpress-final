@@ -5,6 +5,7 @@ import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { AuthError } from "next-auth";
 import bcryptjs from "bcryptjs";
+import { AuthActionResult, AuthCredentials } from "@/types/types";
 
 export const signOutCredentials = async () => {
   try {

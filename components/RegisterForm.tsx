@@ -6,6 +6,7 @@ import {
   ArrowLeftIcon,
 } from "@heroicons/react/24/solid";
 import OTP from "./OTP";
+import Image from "next/image"; // Import the Image component from next/image
 
 interface RegisterFormProps {
   email: string;
@@ -25,12 +26,13 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
   const [showRequirements, setShowRequirements] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const containerRef = useRef(null);
-  const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [errorConfirmPassword, setErrorConfirmPassword] = useState("");
   const [isFormValid, setIsFormValid] = useState(false);
   const [fullName, setFullName] = useState("");
-  const isFullNameValid = fullName.trim().split(" ").length >= 2;
+  // Remove unused variables
+  // const [passwordError, setPasswordError] = useState("");
+  // const isFullNameValid = fullName.trim().split(" ").length >= 2;
 
   const validatePassword = (password: string) => {
     return {
@@ -54,9 +56,11 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
   const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPassword(e.target.value);
     if (e.target.value !== password) {
-      setPasswordError("Mật khẩu nhập lại không khớp.");
+      // Remove unused assignment
+      // setPasswordError("Mật khẩu nhập lại không khớp.");
     } else {
-      setPasswordError("");
+      // Remove unused assignment
+      // setPasswordError("");
     }
   };
 
@@ -113,7 +117,7 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
         password={password} 
         onBack={() => setShowOTP(false)}
         onSuccess={() => {}}
-        onClose={() => {}}
+        onClose={() => setShowOTP(false)}
       />
     );
   }
@@ -126,24 +130,27 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
       >
         <ArrowLeftIcon className="h-6 w-6 text-gray-500" />
       </button>
-      <div className="bg-white flex justify-center items-center mb-6 p-4 rounded-t-lg w-full">
-        <img
+      <div className="bg-white flex justify-center items-center mb-6 rounded-t-lg w-full">
+        <Image
           src="https://s1.vnecdn.net/vnexpress/restruct/i/v824/v2_2019/pc/graphics/logo.svg"
           alt="VnExpress logo"
+          width={160} // Specify width
+          height={160} // Specify height
           className="h-10"
+          unoptimized
         />
       </div>
 
       <h2 className="text-center text-gray-500 text-2xl font-semibold mb-6">
         Tạo tài khoản
       </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block mb-2 text-gray-500" htmlFor="myvne_email_input">
+      <form onSubmit={handleSubmit} className="text-left">
+        <div className="mb-4 text-left">
+          <label className="block mb-2 text-gray-500 text-left" htmlFor="myvne_email_input">
             Email
           </label>
           <input
-            className="w-full bg-gray-200 px-4 py-2 text-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 text-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
             type="email"
             value={userEmail}
             onChange={(e) => setUserEmail(e.target.value)}
@@ -153,12 +160,12 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-2 text-gray-500" htmlFor="full_name_input">
+        <div className="mb-4 text-left">
+          <label className="block mb-2 text-gray-500 text-left" htmlFor="full_name_input">
             Họ và Tên
           </label>
           <input
-            className="w-full px-4 py-2 text-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 text-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-left"
             type="text"
             id="full_name_input"
             value={fullName}
@@ -254,14 +261,14 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
               <EyeIcon className="h-6 w-6 text-gray-500" />
             )}
           </span>
-          {errorConfirmPassword && (
-            <div className="text-red-500 text-sm mt-1">{errorConfirmPassword}</div>
+          
+        </div>
+        {errorConfirmPassword && (
+            <div className="text-red-500 text-sm mt-1 ">{errorConfirmPassword}</div>
           )}
           {emailError && (
             <div className="text-red-500 text-sm mt-1">{emailError}</div>
           )}
-        </div>
-
         <button
           className={`w-full py-2 rounded-lg mb-4 ${
             isFormValid ? "bg-[#8f1c44] text-white hover:bg-[#7a1839]" : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -273,47 +280,6 @@ const RegisterForm = ({ email, onBack }: RegisterFormProps) => {
         </button>
       </form>
 
-      <div className="flex items-center justify-center mb-4">
-        <hr className="w-full border-gray-300" />
-        <span className="px-2 text-gray-500">Hoặc</span>
-        <hr className="w-full border-gray-300" />
-      </div>
-
-      <div className="flex justify-between mb-6">
-        <button
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
-          onClick={() => {/* Handle Google login */}}
-        >
-          <img
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-google.svg"
-            alt="Google logo"
-            className="h-5 mr-2"
-          />
-          <span>Google</span>
-        </button>
-        <button
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2 mx-2"
-          onClick={() => {/* Handle Facebook login */}}
-        >
-          <img
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-facebook.svg"
-            alt="Facebook logo"
-            className="h-5 mr-2"
-          />
-          <span>Facebook</span>
-        </button>
-        <button
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
-          onClick={() => {/* Handle Apple login */}}
-        >
-          <img
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-apple.svg"
-            alt="Apple logo"
-            className="h-5 mr-2"
-          />
-          <span>Apple</span>
-        </button>
-      </div>
 
       <p className="text-center text-gray-500 text-sm">
         Tiếp tục là đồng ý với{" "}

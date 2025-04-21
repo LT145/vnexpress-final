@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from "next/image"; // Import the Image component from next/image
 
 interface AuthenticationProps {
   email: string;
@@ -8,7 +8,6 @@ interface AuthenticationProps {
 }
 
 const Authentication = ({ email, onClose, onBack }: AuthenticationProps) => {
-  const router = useRouter();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +61,14 @@ const Authentication = ({ email, onClose, onBack }: AuthenticationProps) => {
   return (
     <div className="bg-white w-full max-w-md mx-auto p-8 rounded-lg relative">
       <div className="bg-white flex justify-center items-center mb-6 p-4 rounded-t-lg w-full">
-        <img src="https://s1.vnecdn.net/vnexpress/restruct/i/v824/v2_2019/pc/graphics/logo.svg" alt="VnExpress logo" className="h-10" />
+        <Image 
+          src="https://s1.vnecdn.net/vnexpress/restruct/i/v824/v2_2019/pc/graphics/logo.svg" 
+          alt="VnExpress logo" 
+          width={40} // Specify width
+          height={40} // Specify height
+          className="h-10" 
+          unoptimized
+        />
       </div>
       <button onClick={onBack} className="absolute top-4 left-4 text-gray-500 hover:text-gray-700">
         <i className="fas fa-arrow-left"></i>

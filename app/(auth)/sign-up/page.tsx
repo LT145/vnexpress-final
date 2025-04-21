@@ -2,7 +2,6 @@
 
 import { signUpSchema } from "@/lib/validation";
 import { signUp } from "@/actions/auth";
-import AuthForm from "@/components/auth-form";
 import RegisterForm from "@/components/RegisterForm";
 
 const SignUpPage = () => {

@@ -14,10 +14,6 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const user = req.auth?.user;
-  console.log("User object:", user);
-  console.log("User role:", user?.role);
-  console.log("Auth object:", req.auth);
-  console.log("Full auth object with cookies:", req);
 
   const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard");
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);

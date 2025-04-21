@@ -1,7 +1,15 @@
+
+import CategoryNews from "@/components/Index/CategoryNews";
+import LastNews from "@/components/Index/LastNews";
 import React from "react";
 
-const HomePage = () => {
-  return <div>HomePage</div>;
+const HomePage = async () => {
+  return (
+    <div>
+      <LastNews />
+      <CategoryNews />
+    </div>
+  );
 };
 
 export default HomePage;

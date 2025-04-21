@@ -64,7 +64,7 @@ const UserProfile = () => {
     if (user) {
       fetchProfileData(user);
     }
-  }, [user]);
+  }, [user, createdAt]); // Add 'createdAt' to the dependency array
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files?.[0]) return;
@@ -73,7 +73,7 @@ const UserProfile = () => {
         setIsUploadingAvatar(true);
         const formData = new FormData();
         formData.append('image', e.target.files[0]);
-        formData.append('key', 'cf7ee3a824c1c821f2e6734fdbbfaa67');
+        formData.append('key', 'd56688ff153b4c9dcb972fab16a5aadd');
   
         const response = await fetch('https://api.imgbb.com/1/upload', {
           method: 'POST',

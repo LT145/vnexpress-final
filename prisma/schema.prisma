@@ -7,15 +7,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// NextAuth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
 model User {
   id             String          @id @default(cuid())
   name           String?
-  email          String          @unique
+  email          String?         @unique
+  emailVerified  DateTime?
   password       String?
   role           UserRole        @default(USER)
   createdAt      DateTime        @default(now())
   avatar         String?
-  advertisements Advertisement[]
+  googleId  String?  @unique
+  //advertisements Advertisement[]
   comments       Comment[]
   followers      Follow[]        @relation("Followers")
   following      Follow[]        @relation("Following")
@@ -23,6 +65,9 @@ model User {
   posts          Post[]
   profile        Profile?
   reports        Report[]
+  accounts       Account[]
+  sessions       Session[]
+
 }
 
 model Profile {
@@ -45,25 +90,36 @@ model Post {
   authorId  String
   imageUrls String[]
   status    PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorName  String?
   comments  Comment[]
   likes     Like[]
   author    User       @relation(fields: [authorId], references: [id])
   reports   Report[]
-  adPlaces  AdPlace[]  @relation("AdPlaceToPost")
-  tags      Tag[]      @relation("PostToTag")
+  //adPlaces  AdPlace[]  @relation("AdPlaceToPost")
+  categories Category[] @relation("PostToCategory")
 }
 
 model Comment {
   id        String   @id @default(cuid())
   content   String
+  status    CommentStatus @default(PENDING)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  postId    Int
   authorId  String
+  postId    Int
   author    User     @relation(fields: [authorId], references: [id])
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id])
   likes     Like[]
-  reports   Report[]
+  reports   Report[]  // Add this line
+
+  @@map("comments")
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Like {
@@ -88,38 +144,55 @@ model Follow {
   @@unique([followerId, followingId])
 }
 
-model Tag {
-  id    String @id @default(cuid())
-  name  String @unique
-  posts Post[] @relation("PostToTag")
+model Category {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  posts    Post[]   @relation("PostToCategory")
 }
 
 model Report {
   id         String       @id @default(cuid())
   reason     String
   status     ReportStatus @default(PENDING)
+  notes      String?
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
-  reporterId String
   postId     Int?
   commentId  String?
-  comment    Comment?     @relation(fields: [commentId], references: [id])
+  reporterId String
+  type       ReportType   @default(POST)
   post       Post?        @relation(fields: [postId], references: [id])
+  comment    Comment?     @relation(fields: [commentId], references: [id])
   reporter   User         @relation(fields: [reporterId], references: [id])
+
+  @@map("reports")
 }
 
+enum ReportType {
+  POST
+  COMMENT
+}
+
+enum ReportStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+/*
 model Advertisement {
-  id           String      @id @default(cuid())
-  title        String
-  description  String
-  imageUrl     String
-  targetUrl    String
-  startDate    DateTime
-  endDate      DateTime
-  status       AdStatus    @default(PENDING)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  advertiserId String
+  id            String   @id @default(cuid())
+  title         String
+  description   String
+  imageUrl      String
+  targetUrl     String
+  startDate     DateTime
+  endDate       DateTime
+  status        String
+  placementType String   // Add this line
+  position      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  advertiserId  String
   payments     AdPayment[]
   stats        AdStat[]
   advertiser   User        @relation(fields: [advertiserId], references: [id])
@@ -158,7 +231,7 @@ model AdStat {
 
   @@unique([advertisementId, date])
 }
-
+*/
 enum PostStatus {
   DRAFT
   PUBLISHED
@@ -181,11 +254,6 @@ enum Gender {
   PRIVATE
 }
 
-enum ReportStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-}
 
 enum AdStatus {
   PENDING
@@ -199,3 +267,5 @@ enum PaymentStatus {
   COMPLETED
   FAILED
 }
+
+

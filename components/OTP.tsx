@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -16,33 +16,25 @@ const OTP = ({ email, password, fullname, onBack, onSuccess, onClose }: OTPProps
   const router = useRouter();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
   const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  useEffect(() => {
-    sendOtp();
-  }, []);
-
-  useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [countdown]);
 
   const generateOtp = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
-  const sendOtp = async () => {
+  const startResendCooldown = () => {
+    setCanResend(false);
+    setTimeout(() => {
+      setCanResend(true);
+    }, 60000); // 60 giây
+  };
+
+  const sendOtp = useCallback(async () => {
     const newOtp = generateOtp();
     setGeneratedOtp(newOtp);
-    setCountdown(60);
-    setCanResend(false);
+    startResendCooldown();
 
     try {
       const response = await fetch("/api/OTP", {
@@ -61,7 +53,17 @@ const OTP = ({ email, password, fullname, onBack, onSuccess, onClose }: OTPProps
       setError("❌ Lỗi kết nối server!");
       console.error("Lỗi khi gọi API:", error);
     }
-  };
+  }, [email]);
+
+  const hasSentRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasSentRef.current) {
+      hasSentRef.current = true;
+      sendOtp(); // ✅ Chỉ gửi đúng 1 lần
+    }
+  }, [sendOtp]);
+  
 
   const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
@@ -77,57 +79,45 @@ const OTP = ({ email, password, fullname, onBack, onSuccess, onClose }: OTPProps
       return;
     }
 
-    if (otp === generatedOtp) {
-      setIsVerified(true);
-
-      try {
-        const response = await fetch("/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            email, 
-            fullname, 
-            password,
-            verified: true 
-          }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          alert('Tạo tài khoản thành công!');
-          onSuccess();
-          if (email && fullname) {
-            // Lưu vào session bằng next-auth
-            const signInResponse = await signIn('credentials', {
-              email,
-              password,
-              redirect: false,
-              callbackUrl: '/'
-            }) as { ok: boolean; error?: string; url?: string };
-            
-            if (!signInResponse) {
-              setError('❌ Lỗi khi đăng nhập sau đăng ký: Không nhận được phản hồi');
-              return;
-            }
-            
-            if (signInResponse.ok) {
-              router.push("/");
-              onClose();
-              window.location.reload();
-            } else {
-              setError(`❌ Lỗi khi đăng nhập sau đăng ký: ${signInResponse.error || 'Không xác định'}`);
-              console.error('Lỗi đăng nhập:', signInResponse.error);
-            }
-          }
-        } else {
-          setError("❌ Lỗi khi đăng ký tài khoản: " + data.error);
-        }
-      } catch (error) {
-        setError("❌ Lỗi kết nối đến server!");
-        console.error("Lỗi API register:", error);
-      }
-    } else {
+    if (otp !== generatedOtp) {
       setError("Mã OTP không đúng. Vui lòng thử lại!");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, fullname, password, verified: true }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Tạo tài khoản thành công!");
+        onSuccess();
+
+        if (email && password) {
+          const signInResponse = await signIn("credentials", {
+            email,
+            password,
+            redirect: false,
+            callbackUrl: "/",
+          }) as { ok: boolean; error?: string; url?: string };
+
+          if (signInResponse?.ok) {
+            router.push("/");
+            onClose();
+            window.location.reload();
+          } else {
+            setError(`❌ Lỗi khi đăng nhập: ${signInResponse?.error || "Không xác định"}`);
+          }
+        }
+      } else {
+        setError("❌ Lỗi khi đăng ký tài khoản: " + data.error);
+      }
+    } catch (error) {
+      setError("❌ Lỗi kết nối đến server!");
+      console.error("Lỗi API register:", error);
     }
   };
 
@@ -167,14 +157,10 @@ const OTP = ({ email, password, fullname, onBack, onSuccess, onClose }: OTPProps
           Xác nhận OTP
         </button>
 
-        <p className="text-center text-gray-500 text-sm mt-4">
-          {countdown > 0 ? `Gửi lại OTP sau ${countdown}s` : "Bạn có thể gửi lại OTP"}
-        </p>
-
         <button
-          className={`w-full py-2 mt-2 rounded-lg transition-colors ${
-            canResend 
-              ? "bg-blue-500 text-white hover:bg-blue-600" 
+          className={`w-full py-2 mt-4 rounded-lg transition-colors ${
+            canResend
+              ? "bg-blue-500 text-white hover:bg-blue-600"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
           onClick={sendOtp}
