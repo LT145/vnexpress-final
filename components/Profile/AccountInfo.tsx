@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { AccountInfoProps } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const AccountInfo = ({
-  userData,
   isUploadingAvatar,
   isEditing,
   onAvatarChange,
@@ -15,6 +15,8 @@ export const AccountInfo = ({
   onCancelName,
   onNameChange,
 }: AccountInfoProps) => {
+  const [userData, setUserData] = useState<any>({}); // có thể chỉnh lại type nếu muốn
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
 
@@ -31,13 +33,19 @@ export const AccountInfo = ({
       const data = await response.json();
       if (data.success) {
         const avatarUrl = data.data.url;
-        // Send the URL directly instead of the event
+
         onAvatarChange({
           target: {
             files: [new File([e.target.files[0]], e.target.files[0].name)],
-            avatarUrl: avatarUrl
+            avatarUrl
           }
         } as any);
+
+        // cập nhật vào state để render ngay
+        setUserData((prev: any) => ({
+          ...prev,
+          avatar: avatarUrl
+        }));
       } else {
         throw new Error('Upload failed');
       }
@@ -46,6 +54,22 @@ export const AccountInfo = ({
       alert('Failed to upload avatar');
     }
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch('/api/profile/user');
+        if (!response.ok) throw new Error('Failed to fetch user data');
+
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <Card>
@@ -75,7 +99,7 @@ export const AccountInfo = ({
               {isUploadingAvatar ? "Đang tải..." : "Thay ảnh đại diện"}
             </Label>
           </div>
-  
+
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold">Họ tên</h3>
@@ -101,12 +125,12 @@ export const AccountInfo = ({
               </Button>
             )}
           </div>
-  
+
           <div>
             <h3 className="text-lg font-semibold">Email</h3>
             <p className="text-gray-600 mt-2">{userData?.email || "null"}</p>
           </div>
-  
+
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-semibold">Mật khẩu</h3>
@@ -117,5 +141,5 @@ export const AccountInfo = ({
         </div>
       </CardContent>
     </Card>
-);
+  );
 };

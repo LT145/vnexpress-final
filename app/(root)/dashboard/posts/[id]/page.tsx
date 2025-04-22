@@ -156,24 +156,6 @@ export default function PostEditPage({ params }: { params: { id: string } }) {
             />
           </div>
 
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium mb-1">
-              Trạng thái
-            </label>
-            <Select
-              value={formData.status}
-              onValueChange={(value) => setFormData({...formData, status: value})}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PUBLISHED">Đã xuất bản</SelectItem>
-                <SelectItem value="DRAFT">Bản nháp</SelectItem>
-                <SelectItem value="PENDING">Chờ duyệt</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           
           <div>
             <label htmlFor="category" className="block text-sm font-medium mb-1">

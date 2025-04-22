@@ -6,23 +6,14 @@ import { Button } from "@/components/ui/button";
 export const Sidebar = ({ userData }: SidebarProps) => (
   <aside className="w-full md:w-1/4">
     <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-4 mb-6">
-          <Avatar className="w-16 h-16">
-            <AvatarImage 
-              src={userData?.avatar ?? ""} // Provide a fallback empty string if avatar is null
-              alt={userData?.name || "User"} 
-            />
-            <AvatarFallback>
-              {userData?.name?.[0]?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
+      <CardContent className="p-6a">
+        <div className="flex items-center space-x-4 mb-6 mt-6">
           <div>
             <h2 className="text-lg font-semibold text-gray-900">
               {userData?.name || "Người dùng"}
             </h2>
             <p className="text-sm text-gray-500">
-              Thời gian tham gia: {userData?.createdAt || "N/A"}
+              Thời gian tham gia: {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('vi-VN') : "N/A"}
             </p>
           </div>
         </div>

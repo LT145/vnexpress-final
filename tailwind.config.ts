@@ -13,6 +13,7 @@ const config: Config = {
         center: true,
         padding: "1rem",
       },
+      
       colors: {
         black: "#101319",
         white: "#FDFDFD",
@@ -90,6 +91,9 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"),
+    require("tailwind-scrollbar-hide")
+  ],
+  
 };
 export default config;

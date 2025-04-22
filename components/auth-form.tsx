@@ -38,6 +38,7 @@ const AuthForm = <T extends FieldValues>({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showRegisterModal, setShowRegisterModal] = useState(false); // Keep this line
+  const [loginError, setLoginError] = useState<string | null>(null);
   
   // Remove the error state variable
   // const [error, setError] = useState<string | undefined>("");
@@ -62,8 +63,10 @@ const AuthForm = <T extends FieldValues>({
 
         if (result?.error) {
           // Handle error appropriately, e.g., display a message
+          setLoginError("Email hoặc mật khẩu không đúng.");
           console.error(result.error);
         } else {
+          setLoginError(null);
           const session = await getSession();
           if (session?.user.role === 'ADMIN') {
             router.push("/dashboard");
@@ -159,8 +162,12 @@ const AuthForm = <T extends FieldValues>({
             disabled={isPending}
             placeholder="Nhập mật khẩu"
           />
+                  {loginError && (
+  <p className="text-red-500 text-sm mt-1">{loginError}</p>
+)}
         </div>
-      
+
+
         <button
           className={`w-full py-2 rounded-lg mb-4 cursor-pointer ${
             isPending ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#8f1c44] text-white'
@@ -178,49 +185,21 @@ const AuthForm = <T extends FieldValues>({
         <hr className="w-full border-gray-300" />
       </div>
 
-      <div className="flex justify-between mb-6">
-        <button 
-          onClick={handleGoogleSignIn}
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
-        >
-          <Image 
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-google.svg" 
-            alt="Google logo" 
-            width={40} 
-            height={40} 
-            className="h-5 mr-2" 
-            unoptimized
-          />
-          <span>Google</span>
-        </button>
-        <button 
-          onClick={() => signIn('facebook')}
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2 mx-2"
-        >
-          <Image 
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-facebook.svg" 
-            alt="Facebook logo" 
-            width={20} // Specify width
-            height={20} // Specify height
-            className="h-5 mr-2" 
-            unoptimized
-          />
-          <span>Facebook</span>
-        </button>
-        <button 
-          onClick={() => signIn('apple')}
-          className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
-        >
-          <Image 
-            src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-apple.svg" 
-            alt="Apple logo" 
-            width={20} // Specify width
-            height={20} // Specify height
-            className="h-5 mr-2" 
-            unoptimized
-          />
-          <span>Apple</span>
-        </button>
+      <div className="flex justify-center mb-6">
+      <button 
+        onClick={handleGoogleSignIn}
+        className="flex items-center justify-center w-1/3 text-gray-500 bg-white border rounded-lg py-2"
+      >
+        <Image 
+          src="https://s1.vnecdn.net/myvne/i/v350/ls/icons/icon-google.svg" 
+          alt="Google logo" 
+          width={40} 
+          height={40} 
+          className="h-5 mr-2" 
+          unoptimized
+        />
+        <span>Google</span>
+      </button>
       </div>
 
       <p className="text-center text-gray-500 text-sm">

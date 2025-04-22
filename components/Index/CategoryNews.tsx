@@ -80,7 +80,7 @@ export default function CategoryNews() {
             <div key={category.id} className="space-y-4">
               <h1 className="text-2xl font-bold mt-2 mb-4">{category.name}</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {postsByCategory[category.name]?.map((post) => {
+                {postsByCategory[category.name]?.slice(0, 4).map((post) => {
                   const firstImageMatch = post.content.match(/<img[^>]+src="(https?:\/\/[^"]+)"/);
                   const firstImageUrl = firstImageMatch ? firstImageMatch[1] : post.imageUrls?.[0];
 
