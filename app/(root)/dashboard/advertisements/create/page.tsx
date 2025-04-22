@@ -9,21 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface AdvertisementForm {
+  title: string;
+  description: string;
+  imageUrl: string;
+  targetUrl: string;
+  position: string;
+  displayPlace: string;
+}
+
 export default function CreateAdvertisementPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AdvertisementForm>({
     title: "",
     description: "",
     imageUrl: "",
     targetUrl: "",
-    startDate: "",
-    endDate: "",
-    position: "",
-    status: "pending", // Add status field for moderation
-    placementType: "", // Add placement type field
+      position: "top",
+  displayPlace: "home",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,53 +38,19 @@ export default function CreateAdvertisementPage() {
     setError(null);
 
     try {
-      const requestData = {
-        title: formData.title,
-        description: formData.description,
-        imageUrl: formData.imageUrl,
-        targetUrl: formData.targetUrl,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        status: formData.status,
-        placementType: formData.placementType // Ensure this is included
-      };
-
-      console.log('Sending request with data:', requestData);
-      
-      const response = await fetch("/api/advertisements", {
-        method: "POST",
+      const response = await fetch('/api/advertisements', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(formData),
       });
 
-      const responseData = await response.json();
-      
-      if (!response.ok) {
-        console.error('API Response Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          responseData
-        });
-        throw new Error(
-          responseData.message || 
-          `HTTP error! status: ${response.status}`
-        );
-      }
+      if (!response.ok) throw new Error('Không thể tạo quảng cáo');
 
-      router.push("/dashboard/advertisements");
+      router.push('/dashboard/advertisements');
     } catch (err) {
-      console.error('API Error Details:', {
-        error: err,
-        timestamp: new Date().toISOString()
-      });
-      setError(
-        err instanceof Error ? 
-        `Lỗi khi tạo quảng cáo: ${err.message}` : 
-        "Lỗi không xác định khi tạo quảng cáo"
-      );
+      setError(err instanceof Error ? err.message : 'Lỗi không xác định');
     } finally {
       setLoading(false);
     }
@@ -87,7 +60,7 @@ export default function CreateAdvertisementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Tạo Quảng cáo Mới</h2>
-        <Button variant="outline" onClick={() => router.push("/dashboard/advertisements")}>
+        <Button variant="outline" onClick={() => router.push('/dashboard/advertisements')}>
           Quay lại
         </Button>
       </div>
@@ -95,7 +68,7 @@ export default function CreateAdvertisementPage() {
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="title">Tiêu đề quảng cáo</Label>
+            <Label htmlFor="title">Tiêu đề</Label>
             <Input
               id="title"
               value={formData.title}
@@ -112,127 +85,86 @@ export default function CreateAdvertisementPage() {
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Nhập mô tả quảng cáo"
-              required
             />
           </div>
 
           <div>
-            <Label htmlFor="imageUrl">Hình ảnh</Label>
+            <Label htmlFor="image">Hình ảnh</Label>
             <Input
-              id="imageUrl"
+              id="image"
               type="file"
               accept="image/*"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  const formData = new FormData();
-                  formData.append("image", file);
-
-                  try {
-                    const response = await fetch(`https://api.imgbb.com/1/upload?key=d56688ff153b4c9dcb972fab16a5aadd`, {
-                      method: "POST",
-                      body: formData,
-                    });
-
-                    if (!response.ok) throw new Error("Tải ảnh thất bại");
-
-                    const data = await response.json();
-                    setFormData((prev) => ({ ...prev, imageUrl: data.data.url }));
-                  } catch (error) {
-                    console.error("Error uploading image:", error);
-                    setError("Không thể tải ảnh lên");
-                  }
+                  const uploadData = new FormData();
+                  uploadData.append('image', file);
+                  const response = await fetch('https://api.imgbb.com/1/upload?key=d56688ff153b4c9dcb972fab16a5aadd', {
+                    method: 'POST',
+                    body: uploadData
+                  });
+                  const result = await response.json();
+                  setFormData((prev) => ({ ...prev, imageUrl: result.data.url }));
                 }
               }}
               required
             />
-          </div>
+          </div>    
 
           <div>
-            <Label htmlFor="targetUrl">Liên kết đích</Label>
+            <Label htmlFor="targetUrl">URL đích</Label>
             <Input
               id="targetUrl"
-              type="url"
               value={formData.targetUrl}
               onChange={(e) => setFormData({ ...formData, targetUrl: e.target.value })}
-              placeholder="https://example.com"
+              placeholder="Nhập URL đích"
               required
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="startDate">Ngày bắt đầu</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="endDate">Ngày kết thúc</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-
           <div>
-            <Label htmlFor="placementType">Loại vị trí</Label>
+            <Label>Nơi hiển thị</Label>
             <Select
-              value={formData.placementType}
-              onValueChange={(value) => setFormData({ ...formData, placementType: value })}
-              required
+              value={formData.displayPlace}
+              onValueChange={(value) => setFormData({ ...formData, displayPlace: value })}
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn loại vị trí" />
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn nơi hiển thị" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="banner">Banner chính</SelectItem>
-                <SelectItem value="in-content">Trong nội dung</SelectItem>
-                <SelectItem value="footer">Footer</SelectItem>
+                <SelectItem value="home">Trang chủ</SelectItem>
+                <SelectItem value="post">Bài viết</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
           <div>
-            <Label htmlFor="position">Vị trí cụ thể</Label>
+            <Label>Vị trí hiển thị</Label>
             <Select
               value={formData.position}
               onValueChange={(value) => setFormData({ ...formData, position: value })}
-              required
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn vị trí cụ thể" />
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn vị trí" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="homepage-top">Trang chủ - Đầu trang</SelectItem>
-                <SelectItem value="article-top">Bài viết - Đầu trang</SelectItem>
-                <SelectItem value="article-middle">Bài viết - Giữa nội dung</SelectItem>
-                <SelectItem value="footer-center">Footer - Trung tâm</SelectItem>
+                <SelectItem value="top">Đầu trang</SelectItem>
+                <SelectItem value="left">Bên trái</SelectItem>
+                <SelectItem value="right">Bên phải</SelectItem>
+                <SelectItem value="bottom">Cuối trang</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/dashboard/advertisements")}
-            >
-              Hủy
-            </Button>
+          <div className="grid grid-cols-2 gap-4">
+
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
+</div>
+          <div className="flex justify-end">
             <Button type="submit" disabled={loading}>
-              {loading ? "Đang tạo..." : "Tạo quảng cáo"}
+              {loading ? 'Đang tạo...' : 'Tạo quảng cáo'}
             </Button>
           </div>
         </form>

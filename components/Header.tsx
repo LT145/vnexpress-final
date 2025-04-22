@@ -181,6 +181,17 @@ const Header =  () => {
                     >
                       Thông tin cá nhân
                     </button>
+                    {user && ["ADMIN", "EDITOR", "MODERATOR", "ADVERTISER"].includes(user.role) && (
+                      <button
+                        onClick={() => {
+                          router.push("/dashboard");
+                          setShowDropdown(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-blue-600 hover:bg-gray-100 cursor-pointer"
+                      >
+                        Trang quản trị
+                      </button>
+                    )}
                     <button 
                       onClick={() => {
                         router.push("/post");

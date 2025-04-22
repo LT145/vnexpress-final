@@ -4,8 +4,9 @@ import Image from "next/image";
 
 const Footer = () => {
   return (
-    <footer className=" container w-full border-t border-gray-300 text-gray-700 text-[13px] leading-[1.3]">
-      <div className="mx-auto flex flex-wrap justify-between items-center  py-2">
+    <footer className=" mt-10 w-full border-t border-gray-300 text-gray-700 text-[13px] leading-[1.3]">
+      <div className="container">
+      <div className=" mx-auto flex flex-wrap justify-between items-center  py-2">
         <div className="flex items-center space-x-1 mb-2 sm:mb-0">
           <span className="font-semibold">Báo điện tử</span>
           <Image
@@ -92,6 +93,7 @@ const Footer = () => {
         <div className="w-full sm:w-auto text-gray-700 mt-2 sm:mt-0">
           <p>© 1997-2025. Toàn bộ bản quyền thuộc VnExpress</p>
         </div>
+      </div>
       </div>
     </footer>
   );

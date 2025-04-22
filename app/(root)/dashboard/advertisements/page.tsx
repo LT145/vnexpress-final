@@ -29,7 +29,7 @@ export default function AdvertisementsPage() {
   useEffect(() => {
     const fetchAdvertisements = async () => {
       try {
-        const response = await fetch('/api/advertisements');
+        const response = await fetch('/api/advertisements?sort=createdAt:desc');
         if (!response.ok) throw new Error('Không thể tải dữ liệu quảng cáo');
         const data = await response.json();
         setAdvertisements(data);
@@ -104,9 +104,9 @@ export default function AdvertisementsPage() {
             <thead>
               <tr className="border-b">
                 <th className="pb-4 text-left font-medium">Tiêu đề</th>
+                <th className="pb-4 text-left font-medium">Ngày tạo</th>
                 <th className="pb-4 text-left font-medium">Trạng thái</th>
-                <th className="pb-4 text-left font-medium">Ngày bắt đầu</th>
-                <th className="pb-4 text-left font-medium">Ngày kết thúc</th>
+
                 <th className="pb-4 text-left font-medium">Thống kê</th>
                 <th className="pb-4 text-left font-medium">Thao tác</th>
               </tr>
@@ -134,6 +134,7 @@ export default function AdvertisementsPage() {
                 advertisements.map((ad) => (
                   <tr key={ad.id} className="border-b">
                     <td className="py-4">{ad.title}</td>
+                    <td className="py-4">{new Date(ad.createdAt).toLocaleDateString('vi-VN')}</td>
                     <td className="py-4">
                       <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(ad.status)}`}>
                         {ad.status === 'ACTIVE' ? 'Đang hoạt động'
@@ -142,8 +143,7 @@ export default function AdvertisementsPage() {
                           : 'Chờ duyệt'}
                       </span>
                     </td>
-                    <td className="py-4">{new Date(ad.startDate).toLocaleDateString()}</td>
-                    <td className="py-4">{new Date(ad.endDate).toLocaleDateString()}</td>
+
                     <td className="py-4">
                       <Button
                         variant="outline"
@@ -168,23 +168,31 @@ export default function AdvertisementsPage() {
                           onClick={async () => {
                             if (ad.status === 'ACTIVE') {
                               try {
-                                const response = await fetch(`/api/advertisements/${ad.id}/pause`, {
+                                const response = await fetch(`/api/advertisements/${ad.id}`, {
                                   method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({ status: 'PAUSED' }),
                                 });
                                 if (!response.ok) throw new Error('Không thể tạm dừng quảng cáo');
-                                // Refresh data
-                                router.refresh();
+                                // Update state
+                                setAdvertisements((prev) => prev.map((a) => a.id === ad.id ? { ...a, status: ad.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE' } : a));
                               } catch (error) {
                                 console.error('Error:', error);
                               }
                             } else if (ad.status === 'PAUSED') {
                               try {
-                                const response = await fetch(`/api/advertisements/${ad.id}/activate`, {
+                                const response = await fetch(`/api/advertisements/${ad.id}`, {
                                   method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                  body: JSON.stringify({ status: 'ACTIVE' }),
                                 });
                                 if (!response.ok) throw new Error('Không thể kích hoạt quảng cáo');
-                                // Refresh data
-                                router.refresh();
+                                // Update state
+                                setAdvertisements((prev) => prev.map((a) => a.id === ad.id ? { ...a, status: ad.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE' } : a));
                               } catch (error) {
                                 console.error('Error:', error);
                               }

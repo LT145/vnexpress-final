@@ -45,10 +45,10 @@ export default function LastNews() {
     return (
       <div className="container">
         <h1 className="text-2xl font-bold mt-2 mb-4">Tin mới nhất</h1>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2, 3].map((i) => (
-            <Card key={i} className="flex gap-4 p-4">
-              <Skeleton className="w-1/3 h-48 rounded-lg" />
+            <Card key={i} className="flex flex-col sm:flex-row gap-4 p-4">
+              <Skeleton className="w-full sm:w-1/3 h-48 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-6 w-2/3" />
                 <Skeleton className="h-4 w-full" />
@@ -66,36 +66,36 @@ export default function LastNews() {
       <h1 className="text-2xl font-bold mt-2 mb-4">Tin mới nhất</h1>
       <Swiper
         spaceBetween={16}
-        slidesPerView={2}
+        slidesPerView={1}
         modules={[Autoplay]}
         autoplay={{
           delay: 1500,
           disableOnInteraction: false,
         }}
         breakpoints={{
-          640: {
-            slidesPerView: 2,
+          0: {
+            slidesPerView: 1,
           },
-          768: {
+          1024: {
             slidesPerView: 2,
           },
         }}
       >
         {news.slice(0, 8).map((item) => {
-          const firstImageMatch = item.content.match(/<img[^>]+src="(https?:\/\/[^"]+)"/);
+          const firstImageMatch = item.content.match(/<img[^>]+src=\"(https?:\/\/[^\"]+)\"/);
           const firstImageUrl = firstImageMatch ? firstImageMatch[1] : item.imageUrls?.[0];
 
           return (
             <SwiperSlide key={item.id}>
               <Card className="overflow-hidden cursor-pointer" onClick={() => window.location.href = `/post/${item.id}`}>
-                <div className="flex gap-4 p-4">
+                <div className="flex flex-col sm:flex-row gap-4 p-4">
                   {firstImageUrl && (
                     <Image
                       src={firstImageUrl}
                       alt={item.title}
                       width={320}
                       height={192}
-                      className="w-80 h-48 object-cover rounded-lg"
+                      className="w-full sm:w-80 h-48 object-cover rounded-lg"
                       unoptimized
                     />
                   )}

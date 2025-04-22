@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const PostsPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<'all' | 'PUBLISHED' | 'DRAFT' | 'PENDING'>('all');
   interface Post {
   id: string;
   title: string;
@@ -30,7 +31,17 @@ const [posts, setPosts] = useState<Post[]>([]);
           throw new Error('Failed to fetch posts');
         }
         const data = await response.json();
-        setPosts(data);
+        const filteredPosts = data.filter((post: Post) => 
+          post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          (selectedStatus === 'all' || post.status === selectedStatus)
+        );
+        setPosts(filteredPosts);
+        const sortedPosts = filteredPosts.sort((a: Post, b: Post) => {
+          if (a.status === 'DRAFT' && b.status !== 'DRAFT') return -1;
+          if (b.status === 'DRAFT' && a.status !== 'DRAFT') return 1;
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
+        setPosts(sortedPosts);
       } catch (err) {
         console.error('Error fetching posts:', err);
       } finally {
@@ -39,7 +50,7 @@ const [posts, setPosts] = useState<Post[]>([]);
     };
 
     fetchPosts();
-  }, []);
+  }, [searchTerm, selectedStatus]);
 
   return (
     <div className="space-y-6">
@@ -55,15 +66,15 @@ const [posts, setPosts] = useState<Post[]>([]);
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm"
           />
-          <Select defaultValue="all">
+          <Select defaultValue="all" onValueChange={(value: 'all' | 'PUBLISHED' | 'DRAFT' | 'PENDING') => setSelectedStatus(value)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="published">Đã xuất bản</SelectItem>
-              <SelectItem value="draft">Bản nháp</SelectItem>
-              <SelectItem value="pending">Chờ duyệt</SelectItem>
+              <SelectItem value="PUBLISHED">Đã Duyệt</SelectItem>
+              <SelectItem value="PENDING">Chờ Duyệt</SelectItem>
+              <SelectItem value="DELETED">Đã Từ Chối</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -104,28 +115,29 @@ const [posts, setPosts] = useState<Post[]>([]);
                     <td className="py-4">{post.title}</td>
                     <td className="py-4">{post.author?.name || 'Không xác định'}</td>
                     <td className="py-4">
-                      {post.status === 'PUBLISHED' ? (
-                        <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                          Đã duyệt
-                        </span>
-                      ) : post.status === 'DRAFT' ? (
-                        <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-                          chờ duyệt
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
-                          {post.status}
-                        </span>
-                      )}
+                        {post.status === 'PUBLISHED' ? (
+                          <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                            Đã duyệt
+                          </span>
+                        ) : post.status === 'DRAFT' ? (
+                          <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                            chờ duyệt
+                          </span>
+                        ) : post.status === 'DELETED' ? (
+                          <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
+                            Đã từ chối
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">
+                            {post.status}
+                          </span>
+                        )}
                     </td>
                     <td className="py-4">{new Date(post.createdAt).toLocaleDateString()}</td>
                     <td className="py-4">
                       <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/posts/${post.id}`)}>
                           Xem và Chỉnh sửa
-                        </Button>
-                        <Button variant="destructive" size="sm">
-                          Xóa
                         </Button>
                       </div>
                     </td>

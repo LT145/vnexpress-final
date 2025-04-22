@@ -13,7 +13,7 @@ const { auth } = NextAuth(authConfig);
 export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
-  const user = req.auth?.user;
+  const userRole = req.auth?.user?.role;
 
   const isDashboardRoute = nextUrl.pathname.startsWith("/dashboard");
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
@@ -25,7 +25,7 @@ export default auth((req) => {
   });
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
-  if (isDashboardRoute && user?.role !== "ADMIN") {
+  if (isDashboardRoute && !["ADMIN", "EDITOR", "MODERATOR", "ADVERTISER"].includes(userRole ?? "")) {
     return NextResponse.redirect(new URL("/", nextUrl.origin));
   }
 

@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import HeaderWrapper from "./components/HeaderWrapper";
 import { HeaderProvider } from "../context/HeaderContext";
 import Footer from "@/components/Footer";
+import { usePathname } from 'next/navigation';
 
 export default function RootLayout({
   children,
@@ -18,7 +19,7 @@ export default function RootLayout({
           <body className="bg-white min-h-screen ">
             <HeaderWrapper />
             {children}
-            <Footer />
+            {!usePathname()?.startsWith('/dashboard') && <Footer />}
           </body>
         </html>
       </HeaderProvider>

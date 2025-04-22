@@ -214,7 +214,22 @@ export default function PostEditPage({ params }: { params: { id: string } }) {
             }}>
               Duyệt
             </Button>
-            <Button type="button" variant="destructive" onClick={() => setFormData({...formData, status: 'REJECTED'})}>
+            <Button type="button" variant="destructive" onClick={async () => {
+              try {
+                const response = await fetch(`/api/posts/${params.id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ status: 'DELETED', categoryId: formData.categoryId }),
+                });
+                if (!response.ok) throw new Error('Cập nhật trạng thái thất bại');
+                toast.success('Đã từ chối bài viết thành công');
+                router.push('/dashboard/posts');
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'Lỗi không xác định');
+              }
+            }}>
               Từ chối
             </Button>
           </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AddUserDialog } from "./AddUserDialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@prisma/client";
@@ -23,32 +24,32 @@ const UsersPage = () => {
 const [selectedRole, setSelectedRole] = useState<UserRole | 'all'>('all');
 const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const url = `/api/users?${new URLSearchParams({
-          search: searchTerm,
-          role: selectedRole === 'all' ? '' : selectedRole
-        })}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error('Failed to fetch users');
-        }
-        const data = await response.json();
-        setUsers(data.map((user: any) => ({
-          ...user,
-          role: user.role as UserRole,
-          createdAt: user.createdAt
-        })));
-      } catch (err) {
-        console.error('Error fetching users:', err);
-      } finally {
-        setLoading(false);
+  const fetchUsers = async () => {
+    try {
+      const url = `/api/users?${new URLSearchParams({
+        search: searchTerm,
+        role: selectedRole === 'all' ? '' : selectedRole
+      })}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
       }
-    };
+      const data = await response.json();
+      setUsers(data.map((user: any) => ({
+        ...user,
+        role: user.role as UserRole,
+        createdAt: user.createdAt
+      })));
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUsers();
-  }, [searchTerm, selectedRole]);
+  }, [fetchUsers, searchTerm, selectedRole]);
 
   
 
@@ -60,7 +61,7 @@ const [editingUserId, setEditingUserId] = useState<string | null>(null);
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quản lý người dùng</h2>
-        <Button>Thêm người dùng</Button>
+        <AddUserDialog onSuccess={() => fetchUsers()} />
       </div>
 
       <Card className="p-6">

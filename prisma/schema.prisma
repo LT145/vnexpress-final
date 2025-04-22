@@ -178,60 +178,6 @@ enum ReportStatus {
   ACCEPTED
   REJECTED
 }
-/*
-model Advertisement {
-  id            String   @id @default(cuid())
-  title         String
-  description   String
-  imageUrl      String
-  targetUrl     String
-  startDate     DateTime
-  endDate       DateTime
-  status        String
-  placementType String   // Add this line
-  position      String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  advertiserId  String
-  payments     AdPayment[]
-  stats        AdStat[]
-  advertiser   User        @relation(fields: [advertiserId], references: [id])
-  adPlaces     AdPlace[]   @relation("AdPlaceToAdvertisement")
-}
-
-model AdPlace {
-  id             String          @id @default(cuid())
-  name           String
-  description    String?
-  position       String
-  maxAds         Int
-  advertisements Advertisement[] @relation("AdPlaceToAdvertisement")
-  posts          Post[]          @relation("AdPlaceToPost")
-}
-
-model AdPayment {
-  id              String        @id @default(cuid())
-  amount          Float
-  currency        String
-  status          PaymentStatus @default(PENDING)
-  method          String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  advertisementId String
-  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
-}
-
-model AdStat {
-  id              String        @id @default(cuid())
-  impressions     Int           @default(0)
-  clicks          Int           @default(0)
-  date            DateTime      @default(now())
-  advertisementId String
-  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
-
-  @@unique([advertisementId, date])
-}
-*/
 enum PostStatus {
   DRAFT
   PUBLISHED
@@ -253,19 +199,21 @@ enum Gender {
   OTHER
   PRIVATE
 }
-
-
-enum AdStatus {
-  PENDING
-  ACTIVE
-  PAUSED
-  ENDED
+model Advertisement {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  imageUrl    String
+  targetUrl   String
+  position    String
+  displayPlace String
+  status      String  @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-}
+
+
+
 
 
