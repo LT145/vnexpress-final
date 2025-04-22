@@ -24,7 +24,7 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
-
+console.log(comments)
     // Format the response to include full timestamp
     const formattedComments = comments.map(comment => ({
       ...comment,
