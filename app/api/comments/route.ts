@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: Request,) {
   try {
     const comments = await prisma.comment.findMany({
       select: {
@@ -24,7 +24,6 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
-console.log(comments)
     // Format the response to include full timestamp
     const formattedComments = comments.map(comment => ({
       ...comment,
@@ -35,7 +34,7 @@ console.log(comments)
 
     return NextResponse.json(formattedComments);
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    console.error('Error fetching comments:', error, request);
     return NextResponse.json(
       { error: 'Failed to fetch comments' },
       { status: 500 }

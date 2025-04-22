@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AddUserDialog } from "./AddUserDialog";
@@ -24,7 +24,7 @@ const UsersPage = () => {
 const [selectedRole, setSelectedRole] = useState<UserRole | 'all'>('all');
 const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const url = `/api/users?${new URLSearchParams({
         search: searchTerm,
@@ -45,11 +45,11 @@ const [editingUserId, setEditingUserId] = useState<string | null>(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedRole]);
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers, searchTerm, selectedRole]);
+  }, [fetchUsers]);
 
   
 
