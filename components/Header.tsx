@@ -14,11 +14,10 @@ const Header =  () => {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showLogin, setShowLogin] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
-  const [visibleItems, setVisibleItems] = useState<string[]>([]);
-  const [hiddenItems, setHiddenItems] = useState<string[]>([]);
+  const [, setVisibleItems] = useState<string[]>([]);
+  const [, setHiddenItems] = useState<string[]>([]);
   const [currentDate, setCurrentDate] = useState("");
   const { data: session } = useSession();
   const user = session?.user;

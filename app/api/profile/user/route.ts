@@ -4,7 +4,6 @@ import { auth } from '@/auth';
 
 export async function GET(request: Request) {
   try {
-    const url = new URL(request.url);
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -24,10 +23,9 @@ export async function GET(request: Request) {
     if (!userData) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
-
     return NextResponse.json(userData);
   } catch (error) {
-    console.error('Error fetching user data:', error);
+    console.error('Error fetching user data:', error, request );
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
