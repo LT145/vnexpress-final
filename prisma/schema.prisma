@@ -199,8 +199,19 @@ enum Gender {
   OTHER
   PRIVATE
 }
+
+model AdMetric {
+  id        String   @id @default(cuid())
+  adId      String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ad        Advertisement @relation(fields: [adId], references: [id])
+
+}
 model Advertisement {
   id          String   @id @default(cuid())
+  metrics     AdMetric[]
   title       String
   description String
   imageUrl    String

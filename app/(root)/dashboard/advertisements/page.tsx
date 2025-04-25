@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { StatsPopup } from "@/components/ui/stats-popup";
 
 interface Advertisement {
   id: string;
@@ -15,7 +22,7 @@ interface Advertisement {
   targetUrl: string;
   startDate: string;
   endDate: string;
-  status: 'PENDING' | 'ACTIVE' | 'PAUSED' | 'ENDED';
+  status: "PENDING" | "ACTIVE" | "PAUSED" | "ENDED";
   createdAt: string;
 }
 
@@ -25,16 +32,18 @@ export default function AdvertisementsPage() {
   const [advertisements, setAdvertisements] = useState<Advertisement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showStatsPopup, setShowStatsPopup] = useState(false);
+  const [selectedAd, setSelectedAd] = useState<Advertisement | null>(null);
 
   useEffect(() => {
     const fetchAdvertisements = async () => {
       try {
-        const response = await fetch('/api/advertisements?sort=createdAt:desc');
-        if (!response.ok) throw new Error('Không thể tải dữ liệu quảng cáo');
+        const response = await fetch("/api/advertisements?sort=createdAt:desc");
+        if (!response.ok) throw new Error("Không thể tải dữ liệu quảng cáo");
         const data = await response.json();
         setAdvertisements(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Lỗi không xác định');
+        setError(err instanceof Error ? err.message : "Lỗi không xác định");
       } finally {
         setLoading(false);
       }
@@ -45,16 +54,38 @@ export default function AdvertisementsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'PAUSED':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'ENDED':
-        return 'bg-gray-100 text-gray-800';
-      case 'PENDING':
-        return 'bg-blue-100 text-blue-800';
+      case "ACTIVE":
+        return "bg-green-100 text-green-800";
+      case "PAUSED":
+        return "bg-yellow-100 text-yellow-800";
+      case "ENDED":
+        return "bg-gray-100 text-gray-800";
+      case "PENDING":
+        return "bg-blue-100 text-blue-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const toggleAdStatus = async (ad: Advertisement) => {
+    const newStatus = ad.status === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    try {
+      const response = await fetch(`/api/advertisements/${ad.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!response.ok) throw new Error("Không thể cập nhật trạng thái quảng cáo");
+
+      setAdvertisements((prev) =>
+        prev.map((a) =>
+          a.id === ad.id ? { ...a, status: newStatus } : a
+        )
+      );
+    } catch (error) {
+      console.error("Error:", error);
     }
   };
 
@@ -62,7 +93,7 @@ export default function AdvertisementsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quản lý Quảng cáo</h2>
-        <Button onClick={() => router.push('/dashboard/advertisements/create')}>
+        <Button onClick={() => router.push("/dashboard/advertisements/create")}>
           Tạo Quảng cáo Mới
         </Button>
       </div>
@@ -106,7 +137,6 @@ export default function AdvertisementsPage() {
                 <th className="pb-4 text-left font-medium">Tiêu đề</th>
                 <th className="pb-4 text-left font-medium">Ngày tạo</th>
                 <th className="pb-4 text-left font-medium">Trạng thái</th>
-
                 <th className="pb-4 text-left font-medium">Thống kê</th>
                 <th className="pb-4 text-left font-medium">Thao tác</th>
               </tr>
@@ -114,19 +144,19 @@ export default function AdvertisementsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center">
+                  <td colSpan={5} className="py-8 text-center">
                     Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-red-500">
+                  <td colSpan={5} className="py-8 text-center text-red-500">
                     {error}
                   </td>
                 </tr>
               ) : advertisements.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center">
+                  <td colSpan={5} className="py-8 text-center">
                     Chưa có quảng cáo nào
                   </td>
                 </tr>
@@ -134,73 +164,54 @@ export default function AdvertisementsPage() {
                 advertisements.map((ad) => (
                   <tr key={ad.id} className="border-b">
                     <td className="py-4">{ad.title}</td>
-                    <td className="py-4">{new Date(ad.createdAt).toLocaleDateString('vi-VN')}</td>
                     <td className="py-4">
-                      <span className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(ad.status)}`}>
-                        {ad.status === 'ACTIVE' ? 'Đang hoạt động'
-                          : ad.status === 'PAUSED' ? 'Tạm dừng'
-                          : ad.status === 'ENDED' ? 'Đã kết thúc'
-                          : 'Chờ duyệt'}
+                      {new Date(ad.createdAt).toLocaleDateString("vi-VN")}
+                    </td>
+                    <td className="py-4">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(ad.status)}`}
+                      >
+                        {ad.status === "ACTIVE"
+                          ? "Đang hoạt động"
+                          : ad.status === "PAUSED"
+                          ? "Tạm dừng"
+                          : ad.status === "ENDED"
+                          ? "Đã kết thúc"
+                          : "Chờ duyệt"}
                       </span>
                     </td>
-
                     <td className="py-4">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => router.push(`/dashboard/advertisements/${ad.id}/stats`)}
+                        onClick={() => {
+                          setSelectedAd(ad);
+                          setShowStatsPopup(true);
+                        }}
                       >
                         Xem thống kê
                       </Button>
                     </td>
                     <td className="py-4">
                       <div className="flex items-center gap-2">
-                        <Button
+                        {/* <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/dashboard/advertisements/${ad.id}`)}
+                          onClick={() =>
+                            router.push(`/dashboard/advertisements/${ad.id}`)
+                          }
                         >
                           Chỉnh sửa
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
-                            if (ad.status === 'ACTIVE') {
-                              try {
-                                const response = await fetch(`/api/advertisements/${ad.id}`, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({ status: 'PAUSED' }),
-                                });
-                                if (!response.ok) throw new Error('Không thể tạm dừng quảng cáo');
-                                // Update state
-                                setAdvertisements((prev) => prev.map((a) => a.id === ad.id ? { ...a, status: ad.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE' } : a));
-                              } catch (error) {
-                                console.error('Error:', error);
-                              }
-                            } else if (ad.status === 'PAUSED') {
-                              try {
-                                const response = await fetch(`/api/advertisements/${ad.id}`, {
-                                  method: 'POST',
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                  },
-                                  body: JSON.stringify({ status: 'ACTIVE' }),
-                                });
-                                if (!response.ok) throw new Error('Không thể kích hoạt quảng cáo');
-                                // Update state
-                                setAdvertisements((prev) => prev.map((a) => a.id === ad.id ? { ...a, status: ad.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE' } : a));
-                              } catch (error) {
-                                console.error('Error:', error);
-                              }
-                            }
-                          }}
-                        >
-                          {ad.status === 'ACTIVE' ? 'Tạm dừng' : ad.status === 'PAUSED' ? 'Kích hoạt' : ad.status === 'ENDED' ? 'Đã kết thúc' : 'Chờ duyệt'}
-                        </Button>
+                        </Button> */}
+                        {(ad.status === "ACTIVE" || ad.status === "PAUSED") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleAdStatus(ad)}
+                          >
+                            {ad.status === "ACTIVE" ? "Tạm dừng" : "Kích hoạt"}
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -210,6 +221,13 @@ export default function AdvertisementsPage() {
           </table>
         </div>
       </Card>
+
+      {showStatsPopup && selectedAd && (
+        <StatsPopup
+          onClose={() => setShowStatsPopup(false)}
+          adId={selectedAd.id}
+        />
+      )}
     </div>
   );
 }

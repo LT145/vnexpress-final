@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const BarChart = dynamic(
   () => import('recharts').then((mod) => mod.BarChart),
@@ -47,27 +48,46 @@ const DashboardPage = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4">
           <h3 className="text-sm font-medium text-gray-500">Tổng số người dùng</h3>
-          <p className="mt-2 text-3xl font-bold">{loading ? "..." : overview.userCount.toLocaleString()}</p>
+          {loading ? (
+            <Skeleton className="mt-2 h-8 w-3/4" />
+          ) : (
+            <p className="mt-2 text-3xl font-bold">{overview.userCount.toLocaleString()}</p>
+          )}
         </Card>
         <Card className="p-4">
           <h3 className="text-sm font-medium text-gray-500">Tổng số bài viết</h3>
-          <p className="mt-2 text-3xl font-bold">{loading ? "..." : overview.postCount.toLocaleString()}</p>
+          {loading ? (
+            <Skeleton className="mt-2 h-8 w-3/4" />
+          ) : (
+            <p className="mt-2 text-3xl font-bold">{overview.postCount.toLocaleString()}</p>
+          )}
         </Card>
         <Card className="p-4">
           <h3 className="text-sm font-medium text-gray-500">Tổng số bình luận</h3>
-          <p className="mt-2 text-3xl font-bold">{loading ? "..." : overview.commentCount.toLocaleString()}</p>
+          {loading ? (
+            <Skeleton className="mt-2 h-8 w-3/4" />
+          ) : (
+            <p className="mt-2 text-3xl font-bold">{overview.commentCount.toLocaleString()}</p>
+          )}
         </Card>
-        {/* <Card className="p-4">
+        <Card className="p-4">
           <h3 className="text-sm font-medium text-gray-500">Quảng cáo đang chạy</h3>
-          <p className="mt-2 text-3xl font-bold">{loading ? "..." : overview.adCount.toLocaleString()}</p>
-        </Card> */}
+          {loading ? (
+            <Skeleton className="mt-2 h-8 w-3/4" />
+          ) : (
+          <p className="mt-2 text-3xl font-bold">{overview.adCount.toLocaleString()}</p>
+          )}
+        </Card>
       </div>
 
       <Card className="p-6">
         <h3 className="mb-4 text-lg font-medium">Thống kê hoạt động</h3>
         <div className="h-[400px] w-full">
           {loading ? (
-            <div className="h-[400px] w-full bg-gray-100 animate-pulse" />
+            <div className="flex flex-col gap-4">
+              <Skeleton className="h-8 w-1/2" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
           ) : (
             <BarChart
               width={800}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 export default function AdvertisementHome() {
   interface Advertisement {
+    id: string;
     imageUrl: string;
     title: string;
     description: string;
@@ -18,6 +19,14 @@ export default function AdvertisementHome() {
         const response = await fetch('/api/home-advertisements/bottom');
         const data = await response.json();
         setAd(data);
+        // Gửi thông tin lượt hiển thị
+        await fetch('/api/ad-metrics/impression', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ adId: data.id }),
+        });
       } catch (error) {
         console.error('Error fetching home advertisement:', error);
       }
@@ -37,7 +46,18 @@ export default function AdvertisementHome() {
             className="w-full h-64 rounded-lg cursor-pointer"
             width={800} 
             height={100} 
-            onClick={() => window.location.href = ad.targetUrl}
+            onClick={() => {
+
+            // Gửi thông tin lượt nhấp chuột
+            fetch('/api/ad-metrics/click', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ adId: ad.id }),
+            });
+            window.location.href = ad.targetUrl;
+          }}
             unoptimized
           />
         )}

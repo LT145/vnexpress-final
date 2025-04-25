@@ -15,13 +15,11 @@ const SIDEBAR_ITEMS = {
     { title: "Quản lý bình luận", href: "/dashboard/comments" },
     { title: "Quản lý quảng cáo", href: "/dashboard/advertisements" },
     { title: "Quản lý báo cáo", href: "/dashboard/reports" },
-    { title: "Thống kê", href: "/dashboard/statistics" },
   ],
   EDITOR: [
     { title: "Dashboard", href: "/dashboard" },
     { title: "Quản lý bài viết", href: "/dashboard/posts" },
     { title: "Quản lý bình luận", href: "/dashboard/comments" },
-    { title: "Thống kê", href: "/dashboard/statistics" },
   ],
   MODERATOR: [
     { title: "Dashboard", href: "/dashboard" },

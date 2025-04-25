@@ -6,6 +6,7 @@ export async function GET() {
     const advertisements = await prisma.advertisement.findMany({
       where: { displayPlace: 'home', status: 'ACTIVE', position: 'top' },
       select: {
+        id: true,
         imageUrl: true,
         title: true,
         description: true,

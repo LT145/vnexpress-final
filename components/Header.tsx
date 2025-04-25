@@ -15,7 +15,7 @@ const Header =  () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   const [, setVisibleItems] = useState<string[]>([]);
   const [, setHiddenItems] = useState<string[]>([]);
   const [currentDate, setCurrentDate] = useState("");
@@ -35,7 +35,7 @@ const Header =  () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setCategories(data.map((category: {name: string}) => category.name));
+        setCategories(data);
         setVisibleItems(data.slice(0, 10).map((category: {name: string}) => category.name));
         setHiddenItems(data.slice(10).map((category: {name: string}) => category.name));
       } catch (error) {
@@ -100,7 +100,7 @@ const Header =  () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setCategories(data.map((category: {name: string}) => category.name));
+        setCategories(data);
         setVisibleItems(data.slice(0, 10).map((category: {name: string}) => category.name));
         setHiddenItems(data.slice(10).map((category: {name: string}) => category.name));
       } catch (error) {
@@ -288,10 +288,14 @@ const Header =  () => {
           {categories.map((item, index) => (
             <a
               key={index}
-              href="#"
+              href={`/category/${item}`}
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(`/category/${item.id}`);
+              }}
               className="text-gray-500 text-sm whitespace-nowrap hover:text-black transition-all duration-200 py-2 md:py-0 hover:bg-gray-100 px-3 rounded-lg"
             >
-              {item}
+              {item.name}
             </a>
           ))}
         </div>
